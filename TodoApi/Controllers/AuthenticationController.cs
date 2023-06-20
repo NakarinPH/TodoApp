@@ -12,11 +12,11 @@ namespace TodoApi.Controllers;
 [ApiController]
 public class AuthenticationController : ControllerBase
 {
-    private readonly IConfiguration config;
+    private readonly IConfiguration _config;
 
     public AuthenticationController(IConfiguration config)
 	{
-        this.config = config;
+        _config = config;
     }
 
     public record AuthenticationData(string? UserName, string? Password);
@@ -28,7 +28,7 @@ public class AuthenticationController : ControllerBase
     public ActionResult<string> Authenticate([FromBody] AuthenticationData data)
     {
         var user = ValidateCredentials(data);
-        if (user == null) 
+        if (user is null) 
         {
             return Unauthorized();
         }
@@ -42,7 +42,7 @@ public class AuthenticationController : ControllerBase
     {
         var secretKey = new SymmetricSecurityKey(
             Encoding.ASCII.GetBytes(
-                config.GetValue<string>("Authentication:SecretKey"))); 
+                _config.GetValue<string>("Authentication:SecretKey"))); 
         
         var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
@@ -53,8 +53,8 @@ public class AuthenticationController : ControllerBase
         claim.Add(new(JwtRegisteredClaimNames.FamilyName, user.LastName));
 
         var token = new JwtSecurityToken(
-            config.GetValue<String>("Authentication:Issuer"),
-            config.GetValue<String>("Authentication:Audience"),
+            _config.GetValue<String>("Authentication:Issuer"),
+            _config.GetValue<String>("Authentication:Audience"),
             claim,
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(1),

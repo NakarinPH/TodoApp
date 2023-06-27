@@ -12,12 +12,12 @@ namespace TodoApi.Controllers;
 public class TodosController : ControllerBase
 {
     private readonly ITodoData _data;
-    private readonly int userId;
-
-    public TodosController(ITodoData data)
+    private readonly ILogger<TodosController> logger;
+    
+    public TodosController(ITodoData data, ILogger<TodosController> logger)
     {
         _data = data;
-        
+        this.logger = logger;
     }
 
     private int GetUserId()
@@ -31,18 +31,39 @@ public class TodosController : ControllerBase
     public async Task<ActionResult<List<TodoModel>>> Get()
     {
         // return await _data.GetAllAssigned(int.Parse(userId));
-        var output = await _data.GetAllAssigned(GetUserId());
+        logger.LogInformation("GET: api/Todos");
 
-        return Ok(output);
+        try
+        {
+            var output = await _data.GetAllAssigned(GetUserId());
+
+            return Ok(output);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "The Ge call to api/Todos failed.");
+            return BadRequest();
+            
+        }
+
     }
 
     // GET api/Todos/5
     [HttpGet("{todoId}")]
     public async Task<ActionResult<TodoModel>> Get(int todoId)
     {
-        var output = await _data.GetOneAssigned(GetUserId(), todoId);
+        try
+        {
+            var output = await _data.GetOneAssigned(GetUserId(), todoId);
 
-        return Ok(output);
+            return Ok(output);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "The Ge call to api/Todos/{TodoId} failed.", todoId);
+            return BadRequest();
+
+        }
     }
 
     // POST api/Todos
